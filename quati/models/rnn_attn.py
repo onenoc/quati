@@ -220,7 +220,7 @@ class RNNAttention(Model):
         h = self.dropout_emb(self.embeddings_out)
 
         # (bs, ts, emb_dim) -> (bs, ts, hidden_size)
-        h = pack(h, lengths, batch_first=True, enforce_sorted=False)
+        h = pack(h, lengths.cpu(), batch_first=True, enforce_sorted=False)
         h, self.hidden = self.rnn(h, self.hidden)
         h, _ = unpack(h, batch_first=True)
 
