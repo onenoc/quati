@@ -79,5 +79,29 @@ class ContinuousSoftmax(nn.Module):
         super(ContinuousSoftmax, self).__init__()
         self.psi = psi
 
+    def _expectation_psi(self, mu, sigma_sq,theta):
+        """Compute expectation of psi under N(mu, sigma_sq)."""
+        num_basis = [len(basis_functions) for basis_functions in self.psi]
+        total_basis = sum(num_basis)
+        r = torch.zeros(
+            mu.shape[0], total_basis, dtype=theta.dtype, device=theta.device
+        )
+        offsets = torch.cumsum(torch.IntTensor(num_basis).to(theta.device), dim=0)
+        start = 0
+        for j, basis_functions in enumerate(self.psi):
+            # import pdb; pdb.set_trace()
+            r[:, start : offsets[j]] = basis_functions.integrate_psi_gaussian(
+                mu, sigma_sq
+            )
+            start = offsets[j]
+        return r
+
+
     def forward(self, theta):
-        return ContinuousSoftmaxFunction.apply(theta, self.psi)
+        sigma_sq = (-0.5 / theta[:, 1]).unsqueeze(1)
+        mu = theta[:, 0].unsqueeze(1) * sigma_sq
+        r = self._expectation_psi(mu, sigma_sq,theta)
+        return r
+
+    #def forward(self, theta):
+    #    return ContinuousSoftmaxFunction.apply(theta, self.psi)
