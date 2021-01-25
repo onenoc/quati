@@ -223,11 +223,12 @@ class ContinuousAttention(nn.Module):
 
         # get `mu` and `sigma` as the canonical parameters `theta`
         # (bs, ts, hdim) -> (bs, 2)
-        theta, disc_p_attn = self.score_function(query, keys, mask=mask)
+        theta,disc_p_attn = self.score_function(query, keys, mask=mask)
 
         # map to a probability density over basis functions
         # (bs, 2) -> (bs, nb_basis)
         self.continuous_max_activation.psi = self.psis[seq_len - 1]
+        #r = self.continuous_max_activation(theta,alpha1,alpha2)
         r = self.continuous_max_activation(theta)
 
         # create a time dimension

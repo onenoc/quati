@@ -97,11 +97,11 @@ class ContinuousSoftmax(nn.Module):
         return r
 
 
-    def forward(self, theta):
-        sigma_sq = (-0.5 / theta[:, 1]).unsqueeze(1)
-        mu = theta[:, 0].unsqueeze(1) * sigma_sq
-        r = self._expectation_psi(mu, sigma_sq,theta)
-        return r
+    #def forward(self, theta,alpha1,alpha2):
+    #    sigma_sq = (-0.5 / theta[:, 1]).unsqueeze(1)
+    #    mu = theta[:, 0].unsqueeze(1) * sigma_sq
+    #    r = self._expectation_psi(mu, sigma_sq,theta)
+    #    return r
 
-    #def forward(self, theta):
-    #    return ContinuousSoftmaxFunction.apply(theta, self.psi)
+    def forward(self, theta):
+        return ContinuousSoftmaxFunction.apply(theta, self.psi)

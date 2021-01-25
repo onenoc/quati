@@ -143,7 +143,12 @@ class ConvEncoder(ContinuousEncoder):
         else:
             sigma_sq = torch.nn.functional.softplus(x[:, 1])
 
-        return mu, sigma_sq, None
+        #alpha1 = x[:,2]
+        #alpha2 = x[:,3]
+        alpha1=None
+        alpha2=None
+
+        return mu, sigma_sq,None
 
 
 class DiscreteAttentionEncoder(ContinuousEncoder):
