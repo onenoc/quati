@@ -191,13 +191,14 @@ class ContinuousAttention(nn.Module):
         return B
 
     def score_function(self, query, keys, mask=None):
-        self.mu, self.sigma_sq, disc_p_attn = self.encoder(
+        self.mu, self.sigma_sq, alpha1,disc_p_attn = self.encoder(
             query, keys, mask=mask
         )
         self.sigma_sq = torch.clamp(self.sigma_sq, min=1e-6)
-        theta = torch.zeros(self.mu.size(0), 2, device=query.device)
+        theta = torch.zeros(self.mu.size(0), 3, device=query.device)
         theta[:, 0] = self.mu / self.sigma_sq
         theta[:, 1] = -1. / (2. * self.sigma_sq)
+        theta[:, 2] = alpha1
         return theta, disc_p_attn
 
     def forward(self, query, keys, values, mask=None):

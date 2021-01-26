@@ -229,6 +229,6 @@ class GaussianBasisFunctions(BasisFunctions):
         )
         return S_tilde * mu_tilde
 
-    def integrate_psi_gaussian(self, mu, sigma_sq):
+    def integrate_psi_gaussian(self, mu, sigma_sq,alpha1):
         """Compute integral int N(t; mu, sigma_sq) * psi(t)."""
         return self._integrate_product_of_gaussians(mu, sigma_sq)

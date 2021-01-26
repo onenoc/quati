@@ -80,6 +80,7 @@ class ContinuousSoftmax(nn.Module):
         self.psi = psi
 
     def _expectation_psi(self, mu, sigma_sq,theta):
+        alpha1 = theta[:,2]
         """Compute expectation of psi under N(mu, sigma_sq)."""
         num_basis = [len(basis_functions) for basis_functions in self.psi]
         total_basis = sum(num_basis)
@@ -91,7 +92,7 @@ class ContinuousSoftmax(nn.Module):
         for j, basis_functions in enumerate(self.psi):
             # import pdb; pdb.set_trace()
             r[:, start : offsets[j]] = basis_functions.integrate_psi_gaussian(
-                mu, sigma_sq
+                mu, sigma_sq,alpha1
             )
             start = offsets[j]
         return r
