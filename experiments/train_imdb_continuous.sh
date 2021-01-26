@@ -54,7 +54,7 @@ train_quati(){
       --loss-weights "same" \
       --train-batch-size 16 \
       --dev-batch-size 16 \
-      --epochs 10 \
+      --epochs 1 \
       --optimizer "adamw" \
       --learning-rate 0.001 \
       --weight-decay 0.0001 \
@@ -97,9 +97,9 @@ evaluate_quati(){
 
 # softmax
 
-#train_quati "regular" "conv" "softmax" 32 "max" "pred"
-predict_quati "regular" "conv" "softmax" 32 "max" "pred"
-evaluate_quati "regular" "conv" "softmax" 32 "max" "pred"
+train_quati "regular" "conv" "softmax" 32 "max" "pred"
+#predict_quati "regular" "conv" "softmax" 32 "max" "pred"
+#evaluate_quati "regular" "conv" "softmax" 32 "max" "pred"
 
 #train_quati "regular" "conv" "softmax" 64 "max" "pred"
 #predict_quati "regular" "conv" "softmax" 64 "max" "pred"
