@@ -54,7 +54,7 @@ train_quati(){
       --loss-weights "same" \
       --train-batch-size 16 \
       --dev-batch-size 16 \
-      --epochs 1 \
+      --epochs 10 \
       --optimizer "adamw" \
       --learning-rate 0.001 \
       --weight-decay 0.0001 \

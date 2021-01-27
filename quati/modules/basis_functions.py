@@ -168,8 +168,23 @@ class GaussianBasisFunctions(BasisFunctions):
         return 0.5 * (1 + torch.erf(t / math.sqrt(2)))
 
     def _integrate_product_of_gaussians(self, mu, sigma_sq):
+        a = -5
+        b = 5
         sigma = torch.sqrt(self.sigma ** 2 + sigma_sq)
-        return self._phi((mu - self.mu) / sigma) / sigma
+        closed_form = self._phi((mu - self.mu) / sigma) / sigma
+        t = torch.linspace(a,b,1000,device=mu.device)
+        t = t.unsqueeze(0).unsqueeze(0)
+        mu = mu.unsqueeze(-1)
+        sigma_sq = sigma_sq.unsqueeze(-1)
+        mu_basis = self.mu.unsqueeze(-1)
+        sigma_basis = self.sigma.unsqueeze(-1)
+        y1 = 1/(torch.sqrt(2*math.pi*sigma_sq))*torch.exp(-(mu-t).pow(2)/(2*sigma_sq))
+        y2 = 1/(math.sqrt(2*math.pi)*sigma_basis)*torch.exp(-(mu_basis-t).pow(2)/(2*sigma_basis.pow(2)))
+        y=y1*y2
+        integral = torch.trapz(y,torch.linspace(a,b,1000,device=mu.device),dim=-1)
+        #return self._phi((mu - self.mu) / sigma) / sigma
+        return integral
+
 
     def evaluate(self, t):
         return self._phi((t - self.mu) / self.sigma) / self.sigma
