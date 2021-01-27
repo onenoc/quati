@@ -91,7 +91,7 @@ class ContinuousSoftmax(nn.Module):
         start = 0
         for j, basis_functions in enumerate(self.psi):
             # import pdb; pdb.set_trace()
-            r[:, start : offsets[j]] = basis_functions.integrate_psi_gaussian(
+            r[:, start : offsets[j]] = basis_functions.integrate_psi_kernel_exp(
                 mu, sigma_sq,alpha1
             )
             start = offsets[j]
