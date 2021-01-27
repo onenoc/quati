@@ -231,7 +231,7 @@ class GaussianBasisFunctions(BasisFunctions):
         )
         return S_tilde * mu_tilde
 
-    def integrate_psi_kernel_exp(self,mu,sigma_sq,alpha1):
+    def integrate_psi_kernel_exp(self,mu,sigma_sq,alpha):
         a = -5
         b = 5
         t = torch.linspace(a,b,1000,device=mu.device)
@@ -244,11 +244,8 @@ class GaussianBasisFunctions(BasisFunctions):
         y1 = 1/(torch.sqrt(2*math.pi*sigma_sq))*torch.exp(-(mu-t).pow(2)/(2*sigma_sq))
         y2 = 1/(math.sqrt(2*math.pi)*sigma_basis)*torch.exp(-(mu_basis-t).pow(2)/(2*sigma_basis.pow(2)))
         y=y1*y2
-        print(y1.shape)
-        print(y2.shape)
-        print(t.shape)
-        print(5/0)
         integral = torch.trapz(y,torch.linspace(a,b,1000,device=mu.device),dim=-1)
+        return integral
 
     def integrate_psi_gaussian(self, mu, sigma_sq,alpha1):
         """Compute integral int N(t; mu, sigma_sq) * psi(t)."""

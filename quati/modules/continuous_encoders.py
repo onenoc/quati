@@ -98,7 +98,7 @@ class ConvEncoder(ContinuousEncoder):
     def __init__(self, vector_size, hidden_size, pool='max', supp_type='pred'):
         super().__init__()
         self.conv = nn.Conv1d(vector_size, hidden_size, kernel_size=3)
-        self.linear = nn.Linear(hidden_size, 3)
+        self.linear = nn.Linear(hidden_size, 4)
         self.pool = pool
         self.supp_type = supp_type
 
@@ -143,11 +143,9 @@ class ConvEncoder(ContinuousEncoder):
         else:
             sigma_sq = torch.nn.functional.softplus(x[:, 1])
 
-        alpha1 = x[:,2]
-        #alpha1=None
-        #alpha2=None
+        alpha = x[:,2:]
 
-        return mu, sigma_sq,alpha1,None
+        return mu, sigma_sq,alpha,None
 
 
 class DiscreteAttentionEncoder(ContinuousEncoder):

@@ -97,7 +97,7 @@ evaluate_quati(){
 
 # softmax
 
-#train_quati "regular" "conv" "softmax" 32 "max" "pred"
+train_quati "regular" "conv" "softmax" 32 "max" "pred"
 predict_quati "regular" "conv" "softmax" 32 "max" "pred"
 evaluate_quati "regular" "conv" "softmax" 32 "max" "pred"
 
