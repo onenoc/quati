@@ -1,5 +1,6 @@
 import torch
 import math
+import numpy as np
 
 
 class BasisFunctions(object):
@@ -234,17 +235,26 @@ class GaussianBasisFunctions(BasisFunctions):
     def integrate_psi_kernel_exp(self,mu,sigma_sq,alpha):
         a = -5
         b = 5
-        t = torch.linspace(a,b,1000,device=mu.device)
-        t = t.unsqueeze(0).unsqueeze(0)
-        t_index = torch.linspace
+        bandwidth=.01
+        dt_num = 1000
+        t_raw = torch.linspace(a,b,dt_num,device=mu.device)
+        t = t_raw.unsqueeze(0).unsqueeze(0)
         mu = mu.unsqueeze(-1)
         sigma_sq = sigma_sq.unsqueeze(-1)
         mu_basis = self.mu.unsqueeze(-1)
         sigma_basis = self.sigma.unsqueeze(-1)
         y1 = 1/(torch.sqrt(2*math.pi*sigma_sq))*torch.exp(-(mu-t).pow(2)/(2*sigma_sq))
         y2 = 1/(math.sqrt(2*math.pi)*sigma_basis)*torch.exp(-(mu_basis-t).pow(2)/(2*sigma_basis.pow(2)))
-        y=y1*y2
-        integral = torch.trapz(y,torch.linspace(a,b,1000,device=mu.device),dim=-1)
+        dist_matrix = torch.cdist(torch.linspace(0,1,alpha.shape[1],device=mu.device).unsqueeze(-1),torch.linspace(a,b,dt_num,device=mu.device).unsqueeze(-1))
+        K_matrix=torch.exp(-dist_matrix/(2*bandwidth))
+        y3 = torch.exp(torch.mm(alpha,K_matrix))
+        y3 = y3.unsqueeze(1)
+        #y3 = torch.ones(y3.shape,device=y3.device)
+        Z = torch.trapz(y1*y3,torch.linspace(a,b,dt_num,device=mu.device),dim=-1).unsqueeze(-1)
+        y = y1*y2*y3
+        y=y/Z
+        #Need normalization constant
+        integral = torch.trapz(y,torch.linspace(a,b,dt_num,device=mu.device),dim=-1)
         return integral
 
     def integrate_psi_gaussian(self, mu, sigma_sq,alpha1):
