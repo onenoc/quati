@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import math
 # torch.autograd.set_detect_anomaly(True)
 
 
@@ -64,6 +64,7 @@ class ContinuousSparsemaxFunction(torch.autograd.Function):
         right = (mu + a).unsqueeze(1)
         V = cls._integrate_phi_times_psi(ctx, left, right)
         u = cls._integrate_psi(ctx, left, right)
+        #r: bs x nb_basis
         r = torch.matmul(theta.unsqueeze(1), V).squeeze(1) - A.unsqueeze(1) * u
         ctx.save_for_backward(mu, a, V, u)
         return r
@@ -87,6 +88,41 @@ class ContinuousSparsemax(nn.Module):
     def __init__(self, psi=None):
         super(ContinuousSparsemax, self).__init__()
         self.psi = psi
+        self.plus = torch.nn.ReLU()
+
+    def _phi(self,t):
+        return 1.0/math.sqrt(2*math.pi)*torch.exp(-0.5*t**2)
+
+    def truncated_parabola(self,t,mu,sigma_sq):
+        return self.plus(-(t-mu)**2/(2*sigma_sq)+0.5*(3/(2*torch.sqrt(sigma_sq)))**(2./3.))
 
     def forward(self, theta):
-        return ContinuousSparsemaxFunction.apply(theta, self.psi)
+        #size: 1 x nb_basis x 1
+        mu_basis = self.psi[0].mu.unsqueeze(-1)
+        sigma_basis = self.psi[0].sigma.unsqueeze(-1)
+        a = -5
+        b = 5
+        dx = 100
+        #size: 1 x 1 x dx
+        T = torch.linspace(a,b,device=theta.device).unsqueeze(0).unsqueeze(0)
+        #mu, sigma: bs x 1 x 1
+        sigma = torch.sqrt(-0.5/theta[:,1])
+        sigma_sq = (-0.5/theta[:,1]).unsqueeze(-1).unsqueeze(-1)
+        mu = (theta[:,0]*sigma**2).unsqueeze(-1).unsqueeze(-1)
+
+
+        phi1_upper = mu_basis-T
+        phi1_lower = sigma_basis
+        phi1 = self._phi(phi1_upper/phi1_lower)/phi1_lower
+
+        #size: bs x 1 x dx
+        unnormalized_density = self.truncated_parabola(T,mu,sigma_sq)
+        #size: bs x 1 x 1
+        Z = torch.trapz(unnormalized_density,torch.linspace(a,b,dx,device=theta.device),dim=-1).unsqueeze(-1)
+        numerical_integral = torch.trapz(phi1*unnormalized_density/Z,torch.linspace(a,b,dx,device=theta.device),dim=-1)
+        return numerical_integral
+
+
+
+    #def forward(self, theta):
+    #    return ContinuousSparsemaxFunction.apply(theta, self.psi)

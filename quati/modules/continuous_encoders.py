@@ -98,7 +98,7 @@ class ConvEncoder(ContinuousEncoder):
     def __init__(self, vector_size, hidden_size, pool='max', supp_type='pred'):
         super().__init__()
         self.conv = nn.Conv1d(vector_size, hidden_size, kernel_size=3)
-        self.linear = nn.Linear(hidden_size, 12)
+        self.linear = nn.Linear(hidden_size, 2)
         self.pool = pool
         self.supp_type = supp_type
 

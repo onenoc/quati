@@ -170,9 +170,7 @@ class GaussianBasisFunctions(BasisFunctions):
 
     def _integrate_product_of_gaussians(self, mu, sigma_sq):
         sigma = torch.sqrt(self.sigma ** 2 + sigma_sq)
-        closed_form = self._phi((mu - self.mu) / sigma) / sigma
-        #return self._phi((mu - self.mu) / sigma) / sigma
-        return integral
+        return self._phi((mu - self.mu) / sigma) / sigma
 
     def evaluate(self, t):
         return self._phi((t - self.mu) / self.sigma) / self.sigma
@@ -257,6 +255,6 @@ class GaussianBasisFunctions(BasisFunctions):
         integral = torch.trapz(y,torch.linspace(a,b,dt_num,device=mu.device),dim=-1)
         return integral
 
-    def integrate_psi_gaussian(self, mu, sigma_sq,alpha1):
+    def integrate_psi_gaussian(self, mu, sigma_sq):
         """Compute integral int N(t; mu, sigma_sq) * psi(t)."""
         return self._integrate_product_of_gaussians(mu, sigma_sq)
