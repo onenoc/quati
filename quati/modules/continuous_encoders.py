@@ -98,7 +98,7 @@ class ConvEncoder(ContinuousEncoder):
     def __init__(self, vector_size, hidden_size, pool='max', supp_type='pred'):
         super().__init__()
         self.conv = nn.Conv1d(vector_size, hidden_size, kernel_size=3)
-        self.linear = nn.Linear(hidden_size, 2)
+        self.linear = nn.Linear(hidden_size, 12)
         self.pool = pool
         self.supp_type = supp_type
 
@@ -108,8 +108,15 @@ class ConvEncoder(ContinuousEncoder):
 
         # apply conv properly
         x = keys * mask.unsqueeze(-1).float() if mask is not None else keys
+
+        if torch.isnan(keys).any():
+            print('nan in keys')
+        if torch.isnan(x).any():
+            print('nan in continuous encoders from start')
         x = self.conv(x.transpose(-1, -2)).transpose(-1, -2)
         x = torch.relu(x)
+        if torch.isnan(x).any():
+            print('nan in continuous encoders after conv and relu')
 
         # pool a vector from the lstm states
         if self.pool == 'avg':
@@ -119,10 +126,14 @@ class ConvEncoder(ContinuousEncoder):
         elif self.pool == 'last':
             arange = torch.arange(x.shape[0]).to(x.device)
             x = x[arange, lengths - 1].squeeze(1)
+        if torch.isnan(x).any():
+            print('nan in continuous encoders after pooling')
 
         # use a hidden linear layer (query = param vector)
         # (bs, dirs*hidden_size) -> (bs, 2)
         x = self.linear(x)
+        if torch.isnan(x).any():
+            print('nan in continuous encoders after linear')
 
         # predict_mu with a sigmoid activation -> [0, 1]
         mu = torch.sigmoid(x[:, 0])

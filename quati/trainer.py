@@ -163,13 +163,15 @@ class Trainer:
 
     def _train(self):
         self.model.train()
+        torch.autograd.set_detect_anomaly(True)
         for i, batch in enumerate(self.train_iter, start=1):
 
             # basic training steps:
             self.model.zero_grad()
             pred = self.model(batch)
-            loss = self.model.loss(pred, batch.target)
+            loss = self.model.loss(pred, batch.target)#+2.5*(torch.norm(pred)**2)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(),0.1)
             self.optimizer.step()
 
             # keep stats object updated:

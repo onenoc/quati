@@ -101,18 +101,18 @@ evaluate_quati(){
 #predict_quati "regular" "conv" "softmax" 32 "max" "pred"
 #evaluate_quati "regular" "conv" "softmax" 32 "max" "pred"
 
-#train_quati "regular" "conv" "softmax" 64 "max" "pred"
-#predict_quati "regular" "conv" "softmax" 64 "max" "pred"
-#evaluate_quati "regular" "conv" "softmax" 64 "max" "pred"
+train_quati "regular" "conv" "softmax" 64 "max" "pred"
+predict_quati "regular" "conv" "softmax" 64 "max" "pred"
+evaluate_quati "regular" "conv" "softmax" 64 "max" "pred"
 
 #train_quati "regular" "conv" "softmax" 128 "max" "pred"
 #predict_quati "regular" "conv" "softmax" 128 "max" "pred"
 #evaluate_quati "regular" "conv" "softmax" 128 "max" "pred"
 
 # sparsemax
-train_quati "regular" "conv" "sparsemax" 32 "max" "pred"
-predict_quati "regular" "conv" "sparsemax" 32 "max" "pred"
-evaluate_quati "regular" "conv" "sparsemax" 32 "max" "pred"
+#train_quati "regular" "conv" "sparsemax" 32 "max" "pred"
+#predict_quati "regular" "conv" "sparsemax" 32 "max" "pred"
+#evaluate_quati "regular" "conv" "sparsemax" 32 "max" "pred"
 
 #train_quati "regular" "conv" "sparsemax" 64 "max" "pred"
 #predict_quati "regular" "conv" "sparsemax" 64 "max" "pred"

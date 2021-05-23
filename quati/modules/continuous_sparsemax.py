@@ -96,6 +96,12 @@ class ContinuousSparsemax(nn.Module):
     def truncated_parabola(self,t,mu,sigma_sq):
         return self.plus(-(t-mu)**2/(2*sigma_sq)+0.5*(3/(2*torch.sqrt(sigma_sq)))**(2./3.))
 
+    def gaussian_rbf(self,t,bandwidth):
+        return torch.exp(-0.5*t**2/bandwidth)
+
+    def beta_exp(self,t):
+        return self.plus(1+t)
+
     def forward(self, theta):
         #size: 1 x nb_basis x 1
         mu_basis = self.psi[0].mu.unsqueeze(-1)
@@ -103,23 +109,34 @@ class ContinuousSparsemax(nn.Module):
         a = -5
         b = 5
         dx = 100
+        bandwidth = 0.01
         #size: 1 x 1 x dx
-        T = torch.linspace(a,b,device=theta.device).unsqueeze(0).unsqueeze(0)
+        T = torch.linspace(a,b,dx,device=theta.device).unsqueeze(0).unsqueeze(0)
+        inducing_locations = torch.linspace(0,1,theta.shape[1]-2,device=theta.device)
+
+        K_inputs = torch.cdist(inducing_locations.unsqueeze(-1),torch.linspace(a,b,dx,device=theta.device).unsqueeze(-1))
+        #size: inducing x dx
+        K = self.gaussian_rbf(K_inputs,bandwidth)
+        alpha = theta[:,2:]
+        #size: bx x 1 x dx
+        f = torch.matmul(alpha,K).unsqueeze(1)
         #mu, sigma: bs x 1 x 1
         sigma = torch.sqrt(-0.5/theta[:,1])
         sigma_sq = (-0.5/theta[:,1]).unsqueeze(-1).unsqueeze(-1)
         mu = (theta[:,0]*sigma**2).unsqueeze(-1).unsqueeze(-1)
 
-
         phi1_upper = mu_basis-T
         phi1_lower = sigma_basis
         phi1 = self._phi(phi1_upper/phi1_lower)/phi1_lower
 
+        exp_terms = self.beta_exp(f-0.5*(mu-T)**2/(sigma_sq)).clamp(min=1e-8)
+
         #size: bs x 1 x dx
-        unnormalized_density = self.truncated_parabola(T,mu,sigma_sq)
+        #unnormalized_density = self.truncated_parabola(T,mu,sigma_sq)
         #size: bs x 1 x 1
-        Z = torch.trapz(unnormalized_density,torch.linspace(a,b,dx,device=theta.device),dim=-1).unsqueeze(-1)
-        numerical_integral = torch.trapz(phi1*unnormalized_density/Z,torch.linspace(a,b,dx,device=theta.device),dim=-1)
+        #Z = torch.trapz(unnormalizedi_density,torch.linspace(a,b,dx,device=theta.device),dim=-1).unsqueeze(-1)
+        Z = torch.trapz(exp_terms,torch.linspace(a,b,dx,device=theta.device),dim=-1).unsqueeze(-1)
+        numerical_integral = torch.trapz(phi1*exp_terms/Z,torch.linspace(a,b,dx,device=theta.device),dim=-1)
         return numerical_integral
 
 

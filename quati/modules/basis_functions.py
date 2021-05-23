@@ -234,7 +234,7 @@ class GaussianBasisFunctions(BasisFunctions):
         a = -5
         b = 5
         bandwidth=.01
-        dt_num = 1000
+        dt_num = 100
         t_raw = torch.linspace(a,b,dt_num,device=mu.device)
         t = t_raw.unsqueeze(0).unsqueeze(0)
         mu = mu.unsqueeze(-1)
@@ -245,14 +245,37 @@ class GaussianBasisFunctions(BasisFunctions):
         y2 = 1/(math.sqrt(2*math.pi)*sigma_basis)*torch.exp(-(mu_basis-t).pow(2)/(2*sigma_basis.pow(2)))
         dist_matrix = torch.cdist(torch.linspace(0,1,alpha.shape[1],device=mu.device).unsqueeze(-1),torch.linspace(a,b,dt_num,device=mu.device).unsqueeze(-1))
         K_matrix=torch.exp(-dist_matrix.pow(2)/(2*bandwidth))
-        y3 = torch.exp(torch.mm(alpha,K_matrix))
+        y3 = torch.exp(torch.mm(alpha,K_matrix)).clamp(max=100)
         y3 = y3.unsqueeze(1)
         #y3 = torch.ones(y3.shape,device=y3.device)
         Z = torch.trapz(y1*y3,torch.linspace(a,b,dt_num,device=mu.device),dim=-1).unsqueeze(-1)
         y = y1*y2*y3
+        if torch.isnan(y).any():
+            print('y1*y2*y3 is nan')
+            if torch.isnan(y3).any():
+                print('y3')
+                print(torch.mm(alpha,K_matrix))
+                if torch.isnan(torch.mm(alpha,K_matrix)).any():
+                    print('nan before exponentiating')
+                if torch.isnan(alpha).any():
+                    print('nan in alpha')
+                if torch.isnan(K_matrix).any():
+                    print('nan in kernel matrix')
+            if torch.isnan(y2).any():
+                print('y2')
+            if torch.isnan(y1).any():
+                print('y1')
+            print(5/0)
         y=y/Z
+        if torch.isnan(y).any():
+            print('y1*y2*y3/Z is nan')
+            print(torch.max(alpha))
+            print(torch.max(y3))
+            print(5/0)
         #Need normalization constant
         integral = torch.trapz(y,torch.linspace(a,b,dt_num,device=mu.device),dim=-1)
+        if torch.isnan(integral).any():
+            print('nan in integral')
         return integral
 
     def integrate_psi_gaussian(self, mu, sigma_sq):

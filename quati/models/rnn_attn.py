@@ -207,6 +207,8 @@ class RNNAttention(Model):
         assert self._loss is not None
 
         h = batch.words
+        if torch.isnan(h).any():
+            print('nan in word2vec')
         mask = h != constants.PAD_ID
         lengths = mask.int().sum(dim=-1)
 
@@ -218,12 +220,24 @@ class RNNAttention(Model):
         # (bs, ts) -> (bs, ts, emb_dim)
         self.embeddings_out = self.word_emb(h)
         h = self.dropout_emb(self.embeddings_out)
+        if torch.isnan(h).any():
+            print('nan after dropout embedding')
+        pre_rnn = h
 
         # (bs, ts, emb_dim) -> (bs, ts, hidden_size)
         h = pack(h, lengths.cpu(), batch_first=True, enforce_sorted=False)
         h, self.hidden = self.rnn(h, self.hidden)
         h, _ = unpack(h, batch_first=True)
 
+        if torch.isnan(h).any():
+            print('nan after packing, applying RNN, unpacking')
+            print(h)
+            print('pre-rnn is ')
+            print(pre_rnn)
+            print('params are')
+            print(self.rnn._parameters['weight_ih_l0'])
+            print(self.rnn._parameters['weight_hh_l0'])
+        
         # (dirs, bs, hidden_size) -> (bs, dirs*hidden_size)
         # q = self.hidden[0].transpose(0, 1).reshape(h.shape[0], -1)
 
@@ -241,12 +255,13 @@ class RNNAttention(Model):
         # apply dropout
         h = self.dropout_rnn(h)
 
+        if torch.isnan(h).any():
+            print('nan after dropout in RNN attention')
         # (bs, ts, hidden_size)  -> (bs, 1, hidden_size)
         h, self.attn_weights = self.attn(h, h, values=h, mask=mask)
 
         # (bs, 1, hidden_size) -> (bs, 1, nb_classes)
-        self.logits = self.linear_out(h)
-
+        self.logits = self.linear_out(h).clamp(max=5.,min=-5)
         # (bs, 1, nb_classes) -> (bs, 1, nb_classes) in log simplex
         h = F.log_softmax(self.logits, dim=-1)
 

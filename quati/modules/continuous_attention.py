@@ -195,7 +195,7 @@ class ContinuousAttention(nn.Module):
             query, keys, mask=mask
         )
         self.sigma_sq = torch.clamp(self.sigma_sq, min=1e-6)
-        theta = torch.zeros(self.mu.size(0), 2, device=query.device)
+        theta = torch.zeros(self.mu.size(0), 12, device=query.device)
         theta[:, 0] = self.mu / self.sigma_sq
         theta[:, 1] = -1. / (2. * self.sigma_sq)
         theta[:, 2:] = alpha
